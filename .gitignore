@@ -1,0 +1,41 @@
+# ------------------------
+# Python
+__pycache__/
+*.pyc
+.venv/
+.env
+*.egg-info/
+*.egg
+*.pkl
+*.log
+
+# ------------------------
+# DVC
+# Track DVC config folder, ignore data/artifacts
+!.dvc/
+*.dvc
+.dvc/tmp/
+.dvc/cache/
+
+# Raw data and generated files
+data/raw/
+data/processed/
+artifacts/
+metrics/
+
+# ------------------------
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# ------------------------
+# Pip / Conda
+.pip-cache/
+__pypackages__/
+*.conda
+*.lock
+
+# ------------------------
+# OS files
+.DS_Store
+Thumbs.db

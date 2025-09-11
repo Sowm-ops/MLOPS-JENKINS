@@ -1,0 +1,25 @@
+stages:
+  preprocess:
+    cmd: python src/preprocess.py --input data/raw/aclImdb/train --output data/processed/imdb_clean.csv
+    deps:
+      - src/preprocess.py
+      - data/raw/aclImdb/train
+    outs:
+      - data/processed/imdb_clean.csv
+
+  train:
+    cmd: python src/train.py --data data/processed/imdb_clean.csv --model artifacts/model.pkl
+    deps:
+      - src/train.py
+      - data/processed/imdb_clean.csv
+    outs:
+      - artifacts/model.pkl
+
+  evaluate:
+    cmd: python src/evaluate.py --data data/processed/imdb_clean.csv --model artifacts/model.pkl --metrics artifacts/metrics.json
+    deps:
+      - src/evaluate.py
+      - artifacts/model.pkl
+      - data/processed/imdb_clean.csv
+    outs:
+      - artifacts/metrics.json

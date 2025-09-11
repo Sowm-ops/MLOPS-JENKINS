@@ -1,0 +1,6 @@
+pandas
+numpy
+scikit-learn
+dvc[s3]
+boto3
+pyyaml

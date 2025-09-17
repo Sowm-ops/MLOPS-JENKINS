@@ -16,6 +16,7 @@ __pycache__/
 *.dvc
 .dvc/tmp/
 .dvc/cache/
+dvc.lock
 
 # Raw data and generated files
 data/raw/

@@ -11,12 +11,13 @@ __pycache__/
 
 # ------------------------
 # DVC
-# Track DVC config folder, ignore data/artifacts
+# Allow DVC config + lock files
 !.dvc/
 *.dvc
 .dvc/tmp/
-!dvc.lock
 .dvc/cache/
+!dvc.lock
+!.dvcignore
 
 # Raw data and generated files
 data/raw/

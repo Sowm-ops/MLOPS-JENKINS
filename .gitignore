@@ -16,7 +16,6 @@ __pycache__/
 *.dvc
 .dvc/tmp/
 .dvc/cache/
-dvc.lock
 
 # Raw data and generated files
 data/raw/
@@ -34,7 +33,6 @@ metrics/
 .pip-cache/
 __pypackages__/
 *.conda
-*.lock
 
 # ------------------------
 # OS files

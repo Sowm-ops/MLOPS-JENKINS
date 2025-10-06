@@ -1,11 +1,17 @@
+import os
 import pandas as pd
 import pickle
 import argparse
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
 
-def train(data_file, model_file):
-    df = pd.read_csv(data_file)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data", required=True, help="Processed CSV input")
+    parser.add_argument("--model", required=True, help="Path to save model")
+    args = parser.parse_args()
+
+    df = pd.read_csv(args.data)
     X = df["review"]
     y = df["label"]
 
@@ -15,14 +21,10 @@ def train(data_file, model_file):
     model = LogisticRegression(max_iter=1000)
     model.fit(X_vec, y)
 
-    with open(model_file, "wb") as f:
+    # ✅ Create folder before saving
+    os.makedirs(os.path.dirname(args.model), exist_ok=True)
+
+    with open(args.model, "wb") as f:
         pickle.dump((vectorizer, model), f)
 
-    print(f"✅ Model trained and saved to {model_file}")
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--data", required=True)
-    parser.add_argument("--model", required=True)
-    args = parser.parse_args()
-    train(args.data, args.model)
+    print(f"✅ Model trained and saved to {args.model}")

@@ -1,0 +1,6 @@
+outs:
+- md5: b7d922d51f419be6193fa9252b38e581.dir
+  size: 221218527
+  nfiles: 100011
+  hash: md5
+  path: aclImdb

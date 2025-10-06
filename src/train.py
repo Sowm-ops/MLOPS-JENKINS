@@ -21,10 +21,10 @@ if __name__ == "__main__":
     model = LogisticRegression(max_iter=1000)
     model.fit(X_vec, y)
 
-    # ✅ Create folder before saving
+    # Create folder before saving
     os.makedirs(os.path.dirname(args.model), exist_ok=True)
 
     with open(args.model, "wb") as f:
         pickle.dump((vectorizer, model), f)
 
-    print(f"✅ Model trained and saved to {args.model}")
+    print(f"Model trained and saved to {args.model}")

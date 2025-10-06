@@ -17,4 +17,4 @@ if __name__ == "__main__":
     df = load_imdb_dataset(raw_dir)
     os.makedirs("data/processed", exist_ok=True)
     df.to_csv("data/processed/imdb_clean.csv", index=False)
-    print("✅ Preprocessed IMDb dataset saved.")
+    print(" Preprocessed IMDb dataset saved.")

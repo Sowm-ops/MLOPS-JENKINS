@@ -20,7 +20,7 @@ def evaluate(data_file, model_file, metrics_file):
     with open(metrics_file, "w") as f:
         json.dump(metrics, f)
 
-    print(f"✅ Evaluation complete. Accuracy: {acc:.4f}")
+    print(f"Evaluation complete. Accuracy: {acc:.4f}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

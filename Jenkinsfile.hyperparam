@@ -7,11 +7,6 @@ pipeline {
     }
 
     stages {
-        stage('Clone Repository') {
-            steps {
-                bat 'git clone https://github.com/Sowm-ops/MLOPS-JENKINS.git'
-            }
-        }
 
         stage('Setup Environment') {
     steps {

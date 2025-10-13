@@ -10,8 +10,10 @@ pipeline {
         stage('Setup Environment') {
             steps {
                 bat '''
-                call C:\\Users\\sowmyamaddineni\\anaconda3\\Scripts\\activate.bat C:\\Users\\sowmyamaddineni\\anaconda3
-                conda activate mlops
+                rem === Activate base Anaconda environment ===
+                call C:\\Users\\sowmyamaddineni\\anaconda3\\Scripts\\activate.bat
+
+                rem === Install dependencies (safe to re-run) ===
                 pip install -r requirements.txt
                 '''
             }
@@ -29,8 +31,7 @@ pipeline {
         stage('Run DVC Pipeline') {
             steps {
                 bat '''
-                call C:\\Users\\sowmyamaddineni\\anaconda3\\Scripts\\activate.bat C:\\Users\\sowmyamaddineni\\anaconda3
-                conda activate mlops
+                call C:\\Users\\sowmyamaddineni\\anaconda3\\Scripts\\activate.bat
                 dvc pull
                 dvc repro
                 '''
@@ -40,19 +41,18 @@ pipeline {
         stage('Push Results') {
             steps {
                 bat '''
-                call C:\\Users\\sowmyamaddineni\\anaconda3\\Scripts\\activate.bat C:\\Users\\sowmyamaddineni\\anaconda3
-                conda activate mlops
+                call C:\\Users\\sowmyamaddineni\\anaconda3\\Scripts\\activate.bat
 
-                rem Track and push updated params and outputs
+                rem === Track updated parameters and outputs ===
                 dvc add params.yaml
                 git add .
                 git commit -m "Run with lr=${LEARNING_RATE}, epochs=${EPOCHS}" || echo "No changes to commit"
                 git push origin hyperparam-tuning
 
-                rem Push data, models, metrics to S3
+                rem === Push data, models, and metrics to S3 ===
                 dvc push
 
-                rem Optional: tag this run for traceability
+                rem === Tag this run for traceability ===
                 git tag -a "jenkins-lr${LEARNING_RATE}-ep${EPOCHS}" -m "Run with lr=${LEARNING_RATE}, epochs=${EPOCHS}"
                 git push origin --tags
                 '''

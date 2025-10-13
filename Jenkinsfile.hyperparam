@@ -10,11 +10,12 @@ pipeline {
         stage('Setup Environment') {
             steps {
                 bat '''
-                rem === Activate base Anaconda environment ===
-                call C:\\Users\\sowmyamaddineni\\anaconda3\\Scripts\\activate.bat
-
-                rem === Install dependencies (safe to re-run) ===
-                pip install -r requirements.txt
+                echo Setting up Python virtual environment...
+                python -m venv "%VENV_DIR%"
+                call "%VENV_DIR%\\Scripts\\activate"
+                python -m pip install --upgrade pip
+                pip config set global.cache-dir "%PIP_CACHE_DIR%"
+                pip install -r requirements.txt dvc[s3]
                 '''
             }
         }

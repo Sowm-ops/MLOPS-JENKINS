@@ -6,12 +6,24 @@ pipeline {
         string(name: 'EPOCHS', defaultValue: '5', description: 'Number of training epochs')
     }
 
+    environment {
+        // Injected securely from Jenkins Credentials Manager
+        AWS_ACCESS_KEY_ID     = credentials('aws-access-key-id')
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
+
+        // Workspace-local cache and venv for isolation
+        PIP_CACHE_DIR = "${WORKSPACE}\\.pip-cache"
+        VENV_DIR      = "${WORKSPACE}\\.venv"
+    }
+
     stages {
         stage('Setup Environment') {
             steps {
                 bat '''
-                echo Setting up Python virtual environment...
-                python -m venv "%VENV_DIR%"
+                echo === Setting up Python virtual environment ===
+                if not exist "%VENV_DIR%" (
+                    python -m venv "%VENV_DIR%"
+                )
                 call "%VENV_DIR%\\Scripts\\activate"
                 python -m pip install --upgrade pip
                 pip config set global.cache-dir "%PIP_CACHE_DIR%"
@@ -23,6 +35,7 @@ pipeline {
         stage('Update Hyperparameters') {
             steps {
                 bat '''
+                echo === Updating params.yaml with Jenkins parameters ===
                 echo learning_rate: ${LEARNING_RATE} > params.yaml
                 echo epochs: ${EPOCHS} >> params.yaml
                 '''
@@ -32,7 +45,8 @@ pipeline {
         stage('Run DVC Pipeline') {
             steps {
                 bat '''
-                call C:\\Users\\sowmyamaddineni\\anaconda3\\Scripts\\activate.bat
+                echo === Running DVC pipeline ===
+                call "%VENV_DIR%\\Scripts\\activate"
                 dvc pull
                 dvc repro
                 '''
@@ -42,18 +56,19 @@ pipeline {
         stage('Push Results') {
             steps {
                 bat '''
-                call C:\\Users\\sowmyamaddineni\\anaconda3\\Scripts\\activate.bat
+                echo === Pushing results to GitHub and S3 ===
+                call "%VENV_DIR%\\Scripts\\activate"
 
-                rem === Track updated parameters and outputs ===
+                rem Track updated parameters and outputs
                 dvc add params.yaml
                 git add .
                 git commit -m "Run with lr=${LEARNING_RATE}, epochs=${EPOCHS}" || echo "No changes to commit"
                 git push origin hyperparam-tuning
 
-                rem === Push data, models, and metrics to S3 ===
+                rem Push all data, models, and metrics to S3
                 dvc push
 
-                rem === Tag this run for traceability ===
+                rem Tag this run for traceability
                 git tag -a "jenkins-lr${LEARNING_RATE}-ep${EPOCHS}" -m "Run with lr=${LEARNING_RATE}, epochs=${EPOCHS}"
                 git push origin --tags
                 '''

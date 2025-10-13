@@ -1,25 +1,29 @@
 stages:
   preprocess:
-    cmd: python src/preprocess.py --input data/raw/aclImdb/train --output data/processed/imdb_clean.csv
+    cmd: python src/preprocess.py
     deps:
       - src/preprocess.py
-      - data/raw/aclImdb/train
+      - data/raw
     outs:
-      - data/processed/imdb_clean.csv
+      - data/processed
 
   train:
-    cmd: python src/train.py --data data/processed/imdb_clean.csv --model artifacts/model.pkl
+    cmd: python train.py
     deps:
-      - src/train.py
-      - data/processed/imdb_clean.csv
+      - train.py
+      - data/processed
+    params:
+      - learning_rate
+      - epochs
+      - batch_size
     outs:
-      - artifacts/model.pkl
+      - models
 
   evaluate:
-    cmd: python src/evaluate.py --data data/processed/imdb_clean.csv --model artifacts/model.pkl --metrics artifacts/metrics.json
+    cmd: python src/evaluate.py
     deps:
       - src/evaluate.py
-      - artifacts/model.pkl
-      - data/processed/imdb_clean.csv
-    metrics:
-      - artifacts/metrics.json
+      - models
+      - data/processed
+    outs:
+      - metrics.json

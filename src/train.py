@@ -1,30 +1,48 @@
+import yaml
+import json
 import os
-import pandas as pd
-import pickle
-import argparse
-from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+from sklearn.feature_extraction.text import TfidfVectorizer
+import joblib
+import pandas as pd
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--data", required=True, help="Processed CSV input")
-    parser.add_argument("--model", required=True, help="Path to save model")
-    args = parser.parse_args()
+# --- Load Params ---
+with open('params.yaml') as f:
+    params = yaml.safe_load(f)
 
-    df = pd.read_csv(args.data)
-    X = df["review"]
-    y = df["label"]
+learning_rate = float(params.get('learning_rate', 0.001))
+epochs = int(params.get('epochs', 5))
+batch_size = int(params.get('batch_size', 32))
 
-    vectorizer = CountVectorizer(max_features=5000)
-    X_vec = vectorizer.fit_transform(X)
+print(f"Training with learning_rate={learning_rate}, epochs={epochs}, batch_size={batch_size}")
 
-    model = LogisticRegression(max_iter=1000)
-    model.fit(X_vec, y)
+# --- Load Preprocessed Data ---
+train_df = pd.read_csv('data/processed/train.csv')
+test_df = pd.read_csv('data/processed/test.csv')
 
-    # Create folder before saving
-    os.makedirs(os.path.dirname(args.model), exist_ok=True)
+X_train, y_train = train_df['text'], train_df['label']
+X_test, y_test = test_df['text'], test_df['label']
 
-    with open(args.model, "wb") as f:
-        pickle.dump((vectorizer, model), f)
+# --- Feature Extraction ---
+vectorizer = TfidfVectorizer(max_features=10000)
+X_train_vec = vectorizer.fit_transform(X_train)
+X_test_vec = vectorizer.transform(X_test)
 
-    print(f"Model trained and saved to {args.model}")
+# --- Train Model (simple logistic regression) ---
+model = LogisticRegression(max_iter=epochs, solver='lbfgs')
+model.fit(X_train_vec, y_train)
+
+# --- Evaluate ---
+y_pred = model.predict(X_test_vec)
+acc = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {acc:.4f}")
+
+# --- Save Artifacts ---
+os.makedirs("models", exist_ok=True)
+joblib.dump(model, "models/model.pkl")
+joblib.dump(vectorizer, "models/vectorizer.pkl")
+
+metrics = {"accuracy": acc, "epochs": epochs, "learning_rate": learning_rate}
+with open("metrics.json", "w") as f:
+    json.dump(metrics, f, indent=4)

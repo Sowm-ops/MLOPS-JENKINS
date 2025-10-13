@@ -1,0 +1,67 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'LEARNING_RATE', defaultValue: '0.001', description: 'Learning rate for model training')
+        string(name: 'EPOCHS', defaultValue: '5', description: 'Number of training epochs')
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                bat 'git clone https://github.com/Sowm-ops/MLOPS-JENKINS.git'
+            }
+        }
+
+        stage('Setup Environment') {
+            steps {
+                bat '''
+                cd MLOPS-JENKINS
+                call conda activate mlops
+                pip install -r requirements.txt
+                '''
+            }
+        }
+
+        stage('Update Hyperparameters') {
+            steps {
+                bat '''
+                cd MLOPS-JENKINS
+                echo learning_rate: ${LEARNING_RATE} > params.yaml
+                echo epochs: ${EPOCHS} >> params.yaml
+                '''
+            }
+        }
+
+        stage('Run DVC Pipeline') {
+            steps {
+                bat '''
+                cd MLOPS-JENKINS
+                call conda activate mlops
+                dvc repro
+                '''
+            }
+        }
+
+        stage('Push Results') {
+    steps {
+        bat '''
+        cd MLOPS-JENKINS
+        git add .
+        git commit -m "Run with lr=${LEARNING_RATE}, epochs=${EPOCHS}" || echo "No changes to commit"
+        git push origin hyperparam-tuning
+
+        rem Push all data + model + params to S3 via DVC
+        dvc add params.yaml
+        dvc push
+        '''
+    }
+}
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: '**/metrics.json', fingerprint: true
+        }
+    }
+}

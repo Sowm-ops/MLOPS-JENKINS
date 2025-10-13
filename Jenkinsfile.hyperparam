@@ -14,14 +14,15 @@ pipeline {
         }
 
         stage('Setup Environment') {
-            steps {
-                bat '''
-                cd MLOPS-JENKINS
-                call conda activate mlops
-                pip install -r requirements.txt
-                '''
-            }
-        }
+    steps {
+        bat '''
+        cd MLOPS-JENKINS
+        call C:\\Users\\sowmyamaddineni\\anaconda3\\Scripts\\activate.bat C:\\Users\\sowmyamaddineni\\anaconda3
+        conda activate mlops
+        pip install -r requirements.txt
+        '''
+    }
+}
 
         stage('Update Hyperparameters') {
             steps {
@@ -34,14 +35,16 @@ pipeline {
         }
 
         stage('Run DVC Pipeline') {
-            steps {
-                bat '''
-                cd MLOPS-JENKINS
-                call conda activate mlops
-                dvc repro
-                '''
-            }
-        }
+    steps {
+        bat '''
+        cd MLOPS-JENKINS
+        call C:\\Users\\sowmyamaddineni\\anaconda3\\Scripts\\activate.bat C:\\Users\\sowmyamaddineni\\anaconda3
+        conda activate mlops
+        dvc pull
+        dvc repro
+        '''
+    }
+}
 
         stage('Push Results') {
     steps {

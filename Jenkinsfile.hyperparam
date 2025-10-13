@@ -7,22 +7,19 @@ pipeline {
     }
 
     stages {
-
         stage('Setup Environment') {
-    steps {
-        bat '''
-        cd MLOPS-JENKINS
-        call C:\\Users\\sowmyamaddineni\\anaconda3\\Scripts\\activate.bat C:\\Users\\sowmyamaddineni\\anaconda3
-        conda activate mlops
-        pip install -r requirements.txt
-        '''
-    }
-}
+            steps {
+                bat '''
+                call C:\\Users\\sowmyamaddineni\\anaconda3\\Scripts\\activate.bat C:\\Users\\sowmyamaddineni\\anaconda3
+                conda activate mlops
+                pip install -r requirements.txt
+                '''
+            }
+        }
 
         stage('Update Hyperparameters') {
             steps {
                 bat '''
-                cd MLOPS-JENKINS
                 echo learning_rate: ${LEARNING_RATE} > params.yaml
                 echo epochs: ${EPOCHS} >> params.yaml
                 '''
@@ -30,31 +27,37 @@ pipeline {
         }
 
         stage('Run DVC Pipeline') {
-    steps {
-        bat '''
-        cd MLOPS-JENKINS
-        call C:\\Users\\sowmyamaddineni\\anaconda3\\Scripts\\activate.bat C:\\Users\\sowmyamaddineni\\anaconda3
-        conda activate mlops
-        dvc pull
-        dvc repro
-        '''
-    }
-}
+            steps {
+                bat '''
+                call C:\\Users\\sowmyamaddineni\\anaconda3\\Scripts\\activate.bat C:\\Users\\sowmyamaddineni\\anaconda3
+                conda activate mlops
+                dvc pull
+                dvc repro
+                '''
+            }
+        }
 
         stage('Push Results') {
-    steps {
-        bat '''
-        cd MLOPS-JENKINS
-        git add .
-        git commit -m "Run with lr=${LEARNING_RATE}, epochs=${EPOCHS}" || echo "No changes to commit"
-        git push origin hyperparam-tuning
+            steps {
+                bat '''
+                call C:\\Users\\sowmyamaddineni\\anaconda3\\Scripts\\activate.bat C:\\Users\\sowmyamaddineni\\anaconda3
+                conda activate mlops
 
-        rem Push all data + model + params to S3 via DVC
-        dvc add params.yaml
-        dvc push
-        '''
-    }
-}
+                rem Track and push updated params and outputs
+                dvc add params.yaml
+                git add .
+                git commit -m "Run with lr=${LEARNING_RATE}, epochs=${EPOCHS}" || echo "No changes to commit"
+                git push origin hyperparam-tuning
+
+                rem Push data, models, metrics to S3
+                dvc push
+
+                rem Optional: tag this run for traceability
+                git tag -a "jenkins-lr${LEARNING_RATE}-ep${EPOCHS}" -m "Run with lr=${LEARNING_RATE}, epochs=${EPOCHS}"
+                git push origin --tags
+                '''
+            }
+        }
     }
 
     post {
